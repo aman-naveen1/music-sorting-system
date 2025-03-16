@@ -9,6 +9,11 @@
 #include <QMediaCaptureSession>
 #include <QAudioInput>
 #include <QFileDialog>
+#include <QNetworkAccessManager>
+#include <QNetworkRequest>
+#include <QNetworkReply>
+#include <QJsonDocument>
+#include <QJsonObject>
 
 class SoundRecognitionApp : public QWidget {
     Q_OBJECT
@@ -23,13 +28,9 @@ public:
         title->setAlignment(Qt::AlignCenter);
         title->setStyleSheet("font-size: 24px; font-weight: bold;");
         
-        recordButton = new QPushButton("🎙 Record Sound", this);
-        uploadButton = new QPushButton("📂 Upload File", this);
-        analyzeButton = new QPushButton("📊 Analyze Sound", this);
-        
-        recordButton->setStyleSheet("background-color: #1DB954; color: white; padding: 12px; border-radius: 5px;");
-        uploadButton->setStyleSheet("background-color: #535353; color: white; padding: 12px; border-radius: 5px;");
-        analyzeButton->setStyleSheet("background-color: #FF5733; color: white; padding: 12px; border-radius: 5px;");
+        recordButton = new QPushButton("\U0001F3A4 Record Sound", this);
+        uploadButton = new QPushButton("\U0001F4C2 Upload File", this);
+        analyzeButton = new QPushButton("\U0001F4CA Analyze Sound", this);
         
         visualizerFrame = new QFrame(this);
         visualizerFrame->setStyleSheet("background-color: black; border: 1px solid white;");
@@ -42,6 +43,7 @@ public:
         layout->addWidget(analyzeButton);
         
         audioRecorder = new QAudioRecorder(this);
+        networkManager = new QNetworkAccessManager(this);
         
         connect(recordButton, &QPushButton::clicked, this, &SoundRecognitionApp::recordSound);
         connect(uploadButton, &QPushButton::clicked, this, &SoundRecognitionApp::uploadFile);
@@ -68,7 +70,29 @@ private slots:
         }
     }
     void analyzeSound() {
-        QMessageBox::information(this, "Analysis", "Analyzing sound...");
+        // Example API request to fetch song details using Shazam API
+        QNetworkRequest request(QUrl("https://shazam-api-endpoint.com/detect"));
+        request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+        
+        QJsonObject json;
+        json["audioFile"] = "recorded_audio.wav";
+        QNetworkReply *reply = networkManager->post(request, QJsonDocument(json).toJson());
+        connect(reply, &QNetworkReply::finished, this, &SoundRecognitionApp::handleShazamResponse);
+    }
+    void handleShazamResponse() {
+        QNetworkReply *reply = qobject_cast<QNetworkReply *>(sender());
+        if (reply->error() == QNetworkReply::NoError) {
+            QJsonDocument doc = QJsonDocument::fromJson(reply->readAll());
+            QJsonObject obj = doc.object();
+            QString songName = obj["track"]["title"].toString();
+            QString artist = obj["track"]["subtitle"].toString();
+            QString spotifyLink = obj["track"]["spotify"].toString();
+            
+            QMessageBox::information(this, "Song Found", "Song: " + songName + "\nArtist: " + artist + "\nSpotify: " + spotifyLink);
+        } else {
+            QMessageBox::warning(this, "Error", "Failed to fetch song details.");
+        }
+        reply->deleteLater();
     }
 
 private:
@@ -76,6 +100,7 @@ private:
     QPushButton *recordButton, *uploadButton, *analyzeButton;
     QFrame *visualizerFrame;
     QAudioRecorder *audioRecorder;
+    QNetworkAccessManager *networkManager;
 };
 
 int main(int argc, char *argv[]) {
