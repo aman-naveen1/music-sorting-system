@@ -6,8 +6,11 @@ The **Sound Recognition System** is a C++ application built using **Qt**. It pro
 
 To integrate Shazam API and Musixmatch API, we need:
 1.Extract audio fingerprints from the recorded/uploaded audio.
+
 2.Send requests to Shazam API to identify the song.
+
 3.Use the identified song's metadata to fetch lyrics from Musixmatch.
+
 4.Display the song name, cover art, and lyrics in the UI.
 (COMING SOON)
 
