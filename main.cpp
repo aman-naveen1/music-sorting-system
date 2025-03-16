@@ -4,8 +4,10 @@
 #include <QVBoxLayout>
 #include <QLabel>
 #include <QFrame>
+#include <QMessageBox>
 
 class SoundRecognitionApp : public QWidget {
+    Q_OBJECT
 public:
     SoundRecognitionApp(QWidget *parent = nullptr) : QWidget(parent) {
         setWindowTitle("Sound Recognition System");
@@ -35,9 +37,26 @@ public:
         layout->addWidget(uploadButton);
         layout->addWidget(analyzeButton);
         
+        connect(recordButton, &QPushButton::clicked, this, &SoundRecognitionApp::recordSound);
+        connect(uploadButton, &QPushButton::clicked, this, &SoundRecognitionApp::uploadFile);
+        connect(analyzeButton, &QPushButton::clicked, this, &SoundRecognitionApp::analyzeSound);
+        
         setLayout(layout);
     }
+
+private slots:
+    void recordSound() {
+        QMessageBox::information(this, "Recording", "Recording started...");
+    }
+    void uploadFile() {
+        QMessageBox::information(this, "Upload", "Select an audio file to upload.");
+    }
+    void analyzeSound() {
+        QMessageBox::information(this, "Analysis", "Analyzing sound...");
+    }
 };
+
+#include <QApplication>
 
 int main(int argc, char *argv[]) {
     QApplication app(argc, argv);
